@@ -12,3 +12,11 @@ struct Star {
     int x, y;
     bool active;
 };
+
+void animateText(const char* text) {
+    clear();
+    mvprintw(LINES / 2, (COLS - strlen(text)) / 2, text);
+    refresh();
+    usleep(1000000);
+}
+
