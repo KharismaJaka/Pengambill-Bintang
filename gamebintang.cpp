@@ -34,3 +34,27 @@ void saveScore(int score) {
     file.close();
 }
 
+int main() {
+    srand(time(0));
+    initscr();
+    noecho();
+    curs_set(FALSE);
+    keypad(stdscr, TRUE);
+    nodelay(stdscr, TRUE);
+
+    animateText("Selamat Datang di Game Pengambil Bintang");
+
+    int player_x = COLS / 2;
+    int score = 0;
+    Star stars[MAX_STARS];
+    initStars(stars, MAX_STARS);
+
+    while (true) {
+        clear();
+
+        int ch = getch();
+        if (ch == KEY_LEFT && player_x > 0) player_x--;
+        else if (ch == KEY_RIGHT && player_x < COLS - 1) player_x++;
+        else if (ch == 'q') break;
+
+        mvprintw(LINES - 1, player_x, "A");
