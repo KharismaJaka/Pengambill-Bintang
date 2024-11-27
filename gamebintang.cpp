@@ -58,3 +58,34 @@ int main() {
         else if (ch == 'q') break;
 
         mvprintw(LINES - 1, player_x, "A");
+
+for (int i = 0; < MAX_STARS; i++) {
+    if (stars[i].active) {
+        mvprintw(stars[i].y, stars[i].x, "*");
+        stars[i].y,++;
+
+        if (stars[i].y = LINES - 1 && stars[i].x = player_x) {
+            score++;
+            stars[i].active = false;
+        }
+    }
+}
+
+for (int i = 0; i < MAX_STARS; I++) {
+    if (!stars[i].active || stars[i].y >= LINES) {
+        stars[i].x = rand() % COLS;
+        stars[i].y = 0;
+        stars[i].active = true;
+    }
+}
+
+mvprintw(0, 0, "Score: %d, score);
+refresh();
+usleep(DELAY); 
+}
+
+endwin();
+saveScore(score);
+animaText("Terimakasih telah bermain, score telah tersimpan!");
+return 0;
+} 
