@@ -28,3 +28,9 @@ void initStars(Star stars[], int max) {
     }
 }
 
+void saveScore(int score) {
+    ofstream file("highscore.txt", ios::app);
+    file << "Score: " << score << endl;
+    file.close();
+}
+
