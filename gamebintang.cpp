@@ -20,3 +20,11 @@ void animateText(const char* text) {
     usleep(1000000);
 }
 
+void initStars(Star stars[], int max) {
+    for (int i = 0; i < max; i++) {
+        stars[i].x = rand() % COLS;
+        stars[i].y = 0;
+        stars[i].active = true;
+    }
+}
+
