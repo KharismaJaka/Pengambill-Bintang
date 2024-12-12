@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <cstring>
+
 using namespace std;
 
 #define DELAY 100000
@@ -14,6 +15,7 @@ using namespace std;
 struct Star {
     int x, y;
     bool active;
+    int color;
 };
 
 void setupColors() {
@@ -25,7 +27,6 @@ void setupColors() {
     init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
     init_pair(6, COLOR_BLACK, COLOR_WHITE);
     init_pair(7, COLOR_WHITE, COLOR_BLUE);
-    init_pair(8, COLOR_BLACK, COLOR_YELLOW);
 }
 
 void animateText(const char* text, int delay, int color) {
@@ -44,31 +45,38 @@ void animateText(const char* text, int delay, int color) {
 
 void animateOpening() {
     clear();
+    for (int y = 0; y < LINES; y++) {
+        for (int x = 0; x < COLS; x++) {
+            if (rand() % 100 < 5) {
+                mvprintw(y, x, "*");
+            }
+        }
+    }
     attron(COLOR_PAIR(5));
     for (int i = 0; i < COLS; i++) {
-        mvprintw(LINES / 2, i, "=");
+        mvprintw(LINES / 2 - 1, i, "=");
         refresh();
         usleep(OPENING_DELAY);
     }
     attroff(COLOR_PAIR(5));
+    mvprintw(LINES / 2 + 1, (COLS - 50) / 2, "SELAMAT DATANG DI GAME PENGAMBIL BINTANG");
+    mvprintw(LINES / 2 + 3, (COLS - 40) / 2, "Tekan [M] untuk Memulai atau [Q] untuk Keluar");
     refresh();
-    usleep(500000);
-
-    animateText("SELAMAT DATANG DI GAME PENGAMBIL BINTANG", 50000, 7);
-    animateText("MEMUAT...", 100000, 3);
+    usleep(2000000);
 }
 
 void initStars(Star stars[], int max) {
     for (int i = 0; i < max; i++) {
         stars[i].x = rand() % (COLS - 2) + 1;
-        stars[i].y = 1;
+        stars[i].y = rand() % (LINES / 2);
         stars[i].active = true;
+        stars[i].color = rand() % 7 + 1;
     }
 }
 
 void respawnStar(Star& star) {
     star.x = rand() % (COLS - 2) + 1;
-    star.y = 1;
+    star.y = rand() % (LINES / 2);
     star.active = true;
 }
 
@@ -84,7 +92,6 @@ void showHighScore() {
     mvprintw(2, (COLS - 18) / 2, " HIGH SCORES ");
     mvprintw(3, (COLS - 18) / 2, "-------------");
     attroff(COLOR_PAIR(3));
-
     ifstream file("highscore.txt");
     int y = 5, score;
     while (file >> score) {
@@ -121,11 +128,9 @@ void createDefaultUserFile() {
 bool login() {
     char username[20], password[20], file_username[20], file_password[20];
     bool logged_in = false;
-
     while (!logged_in) {
         clear();
         attron(COLOR_PAIR(1));
-
         mvprintw(5, 10, "Username: ");
         echo();
         int i = 0;
@@ -143,7 +148,6 @@ bool login() {
             }
         }
         username[i] = '\0';
-
         mvprintw(6, 10, "Password: ");
         noecho();
         i = 0;
@@ -162,9 +166,7 @@ bool login() {
         }
         password[i] = '\0';
         noecho();
-
         attroff(COLOR_PAIR(1));
-
         if (strlen(username) == 0 || strlen(password) == 0) {
             attron(COLOR_PAIR(4));
             mvprintw(8, 10, "Username/Password tidak boleh kosong.");
@@ -173,7 +175,6 @@ bool login() {
             usleep(1500000);
             continue;
         }
-
         ifstream file("users.txt");
         if (!file) {
             attron(COLOR_PAIR(4));
@@ -183,7 +184,6 @@ bool login() {
             usleep(2000000);
             return false;
         }
-
         bool found = false;
         while (file >> file_username >> file_password) {
             if (strcmp(username, file_username) == 0 && strcmp(password, file_password) == 0) {
@@ -192,9 +192,7 @@ bool login() {
                 break;
             }
         }
-
         file.close();
-
         if (!found) {
             attron(COLOR_PAIR(4));
             mvprintw(8, 10, "Login failed! Try again.");
@@ -206,8 +204,33 @@ bool login() {
     return logged_in;
 }
 
+void displayMenu() {
+    clear();
+    attron(COLOR_PAIR(3));
+    mvprintw(LINES / 4, COLS / 4, "===============================");
+    mvprintw(LINES / 4 + 1, COLS / 4, "|    GAME PENGAMBIL BINTANG  |");
+    mvprintw(LINES / 4 + 2, COLS / 4, "|        [P] Mulai Permaina  |");
+    mvprintw(LINES / 4 + 3, COLS / 4, "|        [H] Skor Tertingg   |");
+    mvprintw(LINES / 4 + 4, COLS / 4, "|        [Q] Keluar          |");
+    mvprintw(LINES / 4 + 5, COLS / 4, "===============================");
+    attroff(COLOR_PAIR(3));
+    refresh();
+    while (true) {
+        char choice = getch();
+        if (choice == 'p' || choice == 'P') {
+            break;
+        } else if (choice == 'h' || choice == 'H') {
+            showHighScore();
+            displayMenu();
+        } else if (choice == 'q' || choice == 'Q') {
+            endwin();
+            exit(EXIT_SUCCESS);
+        }
+    }
+}
+
 int main() {
-    srand(time(0));
+    srand(time(NULL));
     initscr();
     setupColors();
     noecho();
@@ -215,56 +238,53 @@ int main() {
     keypad(stdscr, TRUE);
     nodelay(stdscr, TRUE);
     createDefaultUserFile();
-
+    displayMenu();
     animateOpening();
-    if (!login()) return 0;
+    if (!login()) return EXIT_FAILURE;
     loadingScreen();
     animateText("SELAMAT DATANG DI GAME PENGAMBIL BINTANG", 50000, 7);
-    showHighScore();
-
     int player_x = COLS / 2;
     int score = 0;
     Star stars[MAX_STARS];
     initStars(stars, MAX_STARS);
-
     while (true) {
         clear();
-        box(stdscr, 0, 0);
-
+        for (int y = 0; y < LINES; y++) {
+            for (int x = 0; x < COLS; x++) {
+                if (rand() % 100 < 5) {
+                    attron(COLOR_PAIR(rand() % 5 + 1));
+                    mvprintw(y, x, "*");
+                    attroff(COLOR_PAIR(rand() % 5 + 1));
+                }
+            }
+        }
+        box(stdscr, '|', '-');
         int ch = getch();
         if (ch == 'q') break;
-
-        if (ch == KEY_LEFT) player_x--;
-        if (ch == KEY_RIGHT) player_x++;
-
+        if (ch == KEY_LEFT && player_x > 1) player_x--;
+        if (ch == KEY_RIGHT && player_x < COLS - 2) player_x++;
         mvprintw(LINES - 1, player_x, "A");
-
         for (int i = 0; i < MAX_STARS; i++) {
             if (stars[i].active) {
-                attron(COLOR_PAIR(2));
-                mvprintw(stars[i].y, stars[i].x, "*");
-                attroff(COLOR_PAIR(2));
+                attron(COLOR_PAIR(stars[i].color));
+                mvprintw(stars[i].y, stars[i].x, "★");
+                attroff(COLOR_PAIR(stars[i].color));
                 stars[i].y++;
-
                 if (stars[i].y == LINES - 2 && stars[i].x == player_x) {
                     score++;
                     stars[i].active = false;
                 }
-
                 if (stars[i].y >= LINES - 1) {
                     respawnStar(stars[i]);
                 }
             }
         }
-
         mvprintw(0, 0, "Score: %d", score);
         refresh();
         usleep(STAR_SPEED);
     }
-
     endwin();
     saveScore(score);
-    animateText("Terimakasih telah bermain, score telah tersimpan!", 50000, 7);
-
-    return 0;
+    animateText("Terimakasih telah bermain! Skor telah tersimpan!", 50000, 7);
+    return EXIT_SUCCESS;
 }
